@@ -1,5 +1,7 @@
 #pragma once 
 
+// #include "C:\Users\vssen\Desktop\TX\TXLib.h"
+
 #include <assert.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -11,6 +13,7 @@ typedef int ElemT;
 
 enum NodeType
 {
+	TYPE_NIL,
 	TYPE_CONST,
 	TYPE_VAR,
 	TYPE_BIN_OP,
@@ -55,7 +58,7 @@ static const char* VARIABLES = "xy";
 enum NeutralElems
 {
 	ADD_NEUT = 0,
-	SUM_NEUT = 0,
+	SUB_NEUT = 0,
 	MUL_NULL = 0,
 	MUL_NEUT = 1,
 	DIV_NULL = 0,
@@ -97,5 +100,6 @@ void     PrintExpression        (DerTree* tree);
 void     Destruct               (DerTree* tree);
 void     DestructNode           (DerTree* tree,  DerNode* node);
 void     KillChildren           (DerTree* tree, DerNode* node);
-void     KillYourselfAndChildren(DerTree* tree, DerNode* node, ElemT new_value)
+void     KillYourselfAndChildren(DerTree* tree, DerNode* node, ElemT new_value);
+void     KillFatherAndBrother   (DerTree* tree, DerNode* node);
 void     Delete                 (DerTree* tree);

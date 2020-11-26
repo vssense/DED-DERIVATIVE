@@ -51,7 +51,7 @@ DerTree* NewTree()
     tree->nil->parent = tree->nil;
     tree->nil->left   = tree->nil;
     tree->nil->right  = tree->nil;
-    tree->nil->type   = TYPE_CONST;
+    tree->nil->type   = TYPE_NIL;
 
     tree->root = tree->nil;
 
@@ -68,6 +68,7 @@ DerNode* NewNode(DerTree* tree)
     node->left   = tree->nil;
     node->right  = tree->nil;
     node->parent = tree->nil;
+    node->type   = TYPE_NIL;
 
     return node; 
 }
@@ -129,12 +130,43 @@ void KillYourselfAndChildren(DerTree* tree, DerNode* node, ElemT new_value)
     KillChildren(tree, node);
 
     node->value = new_value;
+    node->type = TYPE_CONST;
 }
 
 void KillFatherAndBrother(DerTree* tree, DerNode* node)
 {
     assert(tree);
     assert(node);
+
+    if (node->parent->right == node)
+    {
+        node->parent->right = tree->nil;
+    }
+    else
+    {
+        node->parent->left = tree->nil;
+    }
+
+    DerNode* father = node->parent;
+    node->parent = node->parent->parent;
+
+    if (father->parent != tree->nil)
+    {
+        if (father->parent->right == father)
+        {
+            father->parent->right = node;
+        }
+        else
+        {
+            father->parent->left = node;
+        }
+    }
+    else
+    {
+        tree->root = node;
+    }
+
+    DestructNodes(tree, father);
 
 }
 
@@ -224,7 +256,7 @@ void GetData(DerTree* tree, char* buffer)
         else 
         {
             GetOperator(node, buffer, &ofs);
-            if (node->type == TYPE_CONST)
+            if (node->type == TYPE_NIL)
             {
                 printf("Syntax error : unknown operator\n ofs = %u", ofs);
             }
@@ -266,7 +298,7 @@ void GetOperator(DerNode* node, char* buffer, size_t* ofs)
     assert(buffer);
 
     GetBinaryOperator(node, buffer, ofs);
-    if (node->type == TYPE_CONST)
+    if (node->type == TYPE_NIL)
     {
         GetUnaryOperator(node, buffer, ofs);
     }
@@ -295,7 +327,7 @@ void GetUnaryOperator(DerNode* node, char* buffer, size_t* ofs)
 {
     assert(node);
     assert(buffer);
-    
+
     size_t num_of_operator = NO_MATCHES;
     for (size_t i = 0; i < NUM_UNARY_OP; ++i)
     {
@@ -353,7 +385,7 @@ void PrintNodes(DerTree* tree, DerNode* node, FILE* dump_file)
     assert(tree);
     assert(dump_file);
 
-    if (node->type == NODE_ERROR)
+    if (node->type == NODE_ERROR || node->type == TYPE_NIL)
     {
         fprintf(dump_file, "\"%p\"[style=\"filled\", fillcolor=\"#EF4C3A\", fontcolor=\"black\", label=\"%d\"]", node, node->value);
     }
@@ -371,7 +403,7 @@ void PrintNodes(DerTree* tree, DerNode* node, FILE* dump_file)
     }
     else
     {
-        fprintf(dump_file, "\"%p\"[style=\"filled\", fillcolor=\"#F6F7C6\", fontcolor=\"black\", label=\"%s\"]", node, UNARY_OP[node->value]);
+        fprintf(dump_file, "\"%p\"[style=\"filled\", fillcolor=\"#F6F796\", fontcolor=\"black\", label=\"%s\"]", node, UNARY_OP[node->value]);
     }
 
     if (node->left != tree->nil)

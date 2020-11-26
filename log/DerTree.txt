@@ -1,3 +1,7 @@
 digraph G{
 node [shape="circle"]
-"00F2B718"[style="filled", fillcolor="#9BC3F7", fontcolor="black", label="242"]}
+"00E30FC0"[style="filled", fillcolor="#F6F7C6", fontcolor="black", label="-"]"00E30FC0":sw->"00E30FE0";
+"00E30FE0"[style="filled", fillcolor="#9BC3F7", fontcolor="black", label="0"]"00E30FC0":se->"00E310E0";
+"00E310E0"[style="filled", fillcolor="#F6F7C6", fontcolor="black", label="-"]"00E310E0":sw->"00E31100";
+"00E31100"[style="filled", fillcolor="#C6F7DD", fontcolor="black", label="y"]"00E310E0":se->"00E31120";
+"00E31120"[style="filled", fillcolor="#9BC3F7", fontcolor="black", label="2"]}
