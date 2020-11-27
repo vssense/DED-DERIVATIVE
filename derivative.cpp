@@ -40,6 +40,8 @@ int main(const int argc, char* argv[])
 
     TakeDerivative(tree);
 
+    PrintExpression(tree);
+
     TreeDump(tree);
 
     Destruct(tree);
@@ -169,7 +171,7 @@ DerNode* SwitchBinOP(DerTree* tree, DerNode* node)
         {
             if (IsThereVariable(tree, node->left))
             {
-                return MUL(MUL(cR, POW(cL, CONST(node->right->value - 1))), dL);
+                return MUL(MUL(cR, POW(cL, SUB(cR, CONST(1)))), dL);
             } 
             else if (IsThereVariable(tree, node->right))
             {
