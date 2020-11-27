@@ -38,14 +38,6 @@ int main(const int argc, char* argv[])
 
     TreeDump(tree);
 
-    // CalculateConsts(tree, tree->root);
-    
-    // PrintExpression(tree);
-
-    // CalculateNeutralOP(tree, tree->root);
-
-    // Simplify(tree);
-
     TakeDerivative(tree);
 
     TreeDump(tree);
@@ -126,6 +118,7 @@ DerNode* Derivative(DerTree* tree, DerNode* node)
         default :
         {
             printf("Error type was discovored while taking taking a derivative\nline = %d\n", __LINE__);
+            return tree->nil;
             break;
         }
     }

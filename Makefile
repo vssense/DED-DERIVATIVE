@@ -1,4 +1,4 @@
-options = -Wall -Wextra -w
+options = -Wall -Wextra
 
 input = derivative.txt
 
