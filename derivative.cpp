@@ -40,7 +40,7 @@ int main(const int argc, char* argv[])
 
     TakeDerivative(tree);
 
-    PrintExpression(tree);
+    // PrintExpression(tree);
 
     TreeDump(tree);
 
@@ -141,8 +141,9 @@ DerNode* CopyTree(DerTree* tree, DerNode* node)
 #define MUL(left, right) ConstructNode(TYPE_BIN_OP, OP_MUL, left, right)
 #define DIV(left, right) ConstructNode(TYPE_BIN_OP, OP_DIV, left, right)
 #define POW(left, right) ConstructNode(TYPE_BIN_OP, OP_POW, left, right)
-#define LN(right)        ConstructNode(TYPE_UN_OP,  OP_LN, tree->nil, right)
-#define CONST(NUM)       ConstructNode(TYPE_CONST, NUM, tree->nil, tree->nil)
+#define EXP(right)       ConstructNode(TYPE_UN_OP,  OP_EXP, tree->nil, right)
+#define LN(right)        ConstructNode(TYPE_UN_OP,  OP_LN,  tree->nil, right)
+#define CONST(NUM)       ConstructNode(TYPE_CONST,  NUM,    tree->nil, tree->nil)
 
 DerNode* SwitchBinOP(DerTree* tree, DerNode* node)
 {
@@ -169,11 +170,17 @@ DerNode* SwitchBinOP(DerTree* tree, DerNode* node)
         }
         case OP_POW :
         {
-            if (IsThereVariable(tree, node->left))
+            bool IsVarInRight = IsThereVariable(tree, node->right);
+            bool IsVarInLeft  = IsThereVariable(tree, node->left);
+            if (IsVarInLeft && IsVarInRight)
+            {
+                return Derivative(tree, EXP(MUL(cR, LN(cL))));
+            }
+            else if (IsVarInLeft)
             {
                 return MUL(MUL(cR, POW(cL, SUB(cR, CONST(1)))), dL);
             } 
-            else if (IsThereVariable(tree, node->right))
+            else if (IsVarInRight)
             {
                 return MUL(MUL(c, LN(cL)), dR);
             }

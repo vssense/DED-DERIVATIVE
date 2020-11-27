@@ -1,12 +1,16 @@
 digraph G{
 node [shape="circle"]
-"00685AE0"[style="filled", fillcolor="#F6F7C6", label="*"]"00685AE0":sw->"00685900";
-"00685900"[style="filled", fillcolor="#F6F7C6", label="/"]"00685900":sw->"006858A0";
-"006858A0"[style="filled", fillcolor="#9BC3F7", label="1"]"00685900":se->"00685800";
-"00685800"[style="filled", fillcolor="#F6F7C6", label="*"]"00685800":sw->"00685840";
-"00685840"[style="filled", fillcolor="#9BC3F7", label="2"]"00685800":se->"006857C0";
-"006857C0"[style="filled", fillcolor="#F6F796", label="sqrt"]"006857C0":se->"00680F60";
-"00680F60"[style="filled", fillcolor="#F6F7C6", label="*"]"00680F60":sw->"00680F40";
-"00680F40"[style="filled", fillcolor="#9BC3F7", label="2"]"00680F60":se->"00680F20";
-"00680F20"[style="filled", fillcolor="#C6F7DD", label="x"]"00685AE0":se->"00680E80";
-"00680E80"[style="filled", fillcolor="#9BC3F7", label="2"]}
+"00BF5AC0"[style="filled", fillcolor="#F6F7C6", label="*"]"00BF5AC0":sw->"00BF5960";
+"00BF5960"[style="filled", fillcolor="#F6F796", label="exp"]"00BF5960":se->"00BF5940";
+"00BF5940"[style="filled", fillcolor="#F6F7C6", label="*"]"00BF5940":sw->"00BF59C0";
+"00BF59C0"[style="filled", fillcolor="#C6F7DD", label="x"]"00BF5940":se->"00BF5720";
+"00BF5720"[style="filled", fillcolor="#F6F796", label="ln"]"00BF5720":se->"00BF5A60";
+"00BF5A60"[style="filled", fillcolor="#C6F7DD", label="x"]"00BF5AC0":se->"00BF5880";
+"00BF5880"[style="filled", fillcolor="#F6F7C6", label="+"]"00BF5880":sw->"00BF5920";
+"00BF5920"[style="filled", fillcolor="#F6F796", label="ln"]"00BF5920":se->"00BF5800";
+"00BF5800"[style="filled", fillcolor="#C6F7DD", label="x"]"00BF5880":se->"00BF5A20";
+"00BF5A20"[style="filled", fillcolor="#F6F7C6", label="*"]"00BF5A20":sw->"00BF0F80";
+"00BF0F80"[style="filled", fillcolor="#C6F7DD", label="x"]"00BF5A20":se->"00BF0F40";
+"00BF0F40"[style="filled", fillcolor="#F6F7C6", label="/"]"00BF0F40":sw->"00BF0F20";
+"00BF0F20"[style="filled", fillcolor="#9BC3F7", label="1"]"00BF0F40":se->"00BF0F00";
+"00BF0F00"[style="filled", fillcolor="#C6F7DD", label="x"]}
