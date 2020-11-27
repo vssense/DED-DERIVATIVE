@@ -13,12 +13,12 @@ typedef int ElemT;
 
 enum NodeType
 {
-	TYPE_NIL,
-	TYPE_CONST,
-	TYPE_VAR,
-	TYPE_BIN_OP,
-	TYPE_UN_OP,
-	NODE_ERROR
+	TYPE_NIL    = 0,
+	TYPE_CONST  = 1,
+	TYPE_VAR    = 2,
+	TYPE_BIN_OP = 3,
+	TYPE_UN_OP  = 4,
+	NODE_ERROR  = 5
 };
 
 enum BinaryOperators
@@ -39,11 +39,13 @@ enum UnaryOperators
 	OP_COS  = 1,
 	OP_TG   = 2,
 	OP_CTG  = 3,
-	OP_SQRT = 4
+	OP_SQRT = 4,
+    OP_LN   = 5,
+    OP_EXP  = 6
 };
 
-static const char* UNARY_OP[] = {"sin", "cos", "tg", "ctg", "sqrt"};
-static const size_t NUM_UNARY_OP = 5;
+static const char* UNARY_OP[] = {"sin", "cos", "tg", "ctg", "sqrt", "ln", "exp"};
+static const size_t NUM_UNARY_OP = 7;
 
 static const size_t NO_MATCHES = 3232;
 
@@ -64,7 +66,11 @@ enum NeutralElems
 	DIV_NULL = 0,
 	DIV_NEUT = 1,
 	POW_NULL = 0,
-	POW_NEUT = 1
+	POW_NEUT = 1,
+    LN_NEUT  = 1,
+    LN_NULL  = 0,
+    EXP_NULL = 0,
+    EXP_NEUT = 1
 };
 
 enum BreakElems
@@ -98,7 +104,8 @@ DerNode* ConstructNode          (NodeType type, ElemT value, DerNode* left, DerN
 void     TreeDump               (DerTree* tree);
 void     PrintExpression        (DerTree* tree);
 void     Destruct               (DerTree* tree);
-void     DestructNode           (DerTree* tree,  DerNode* node);
+void     DestructNode           (DerTree* tree, DerNode* node);
+void     DestructNodes          (DerTree* tree, DerNode* node);
 void     KillChildren           (DerTree* tree, DerNode* node);
 void     KillYourselfAndChildren(DerTree* tree, DerNode* node, ElemT new_value);
 void     KillFatherAndBrother   (DerTree* tree, DerNode* node);

@@ -14,10 +14,22 @@ void CalculateNeutralSub(DerTree* tree, DerNode* node);
 void CalculateNeutralMul(DerTree* tree, DerNode* node);
 void CalculateNeutralDiv(DerTree* tree, DerNode* node);
 void CalculateNeutralPow(DerTree* tree, DerNode* node);
+void CalculateNeutralLn (DerTree* tree, DerNode* node);
+void CalculateNeutralExp(DerTree* tree, DerNode* node);
 
 /////////////////////////////////
-//Direvative
+//Derivative
 /////////////////////////////////
+void     TakeDerivative       (DerTree* tree);
+DerTree* Derevative           (DerTree* tree, DerNode* node);
+DerNode* CopyTree             (DerTree* tree, DerNode* node);
+DerNode* SwitchBinOP          (DerTree* tree, DerNode* node);
+DerNode* SwitchUnOP           (DerTree* tree, DerNode* node);
+DerNode* Derivative           (DerTree* tree, DerNode* node);
+void     TakeDerivative       (DerTree* tree);
+void     SetParents           (DerTree* tree);
+void     SetParentsRecursively(DerTree* tree, DerNode* node);
+bool     IsThereVariable      (DerTree* tree, DerNode* node);
 
 
 int main(const int argc, char* argv[])
@@ -25,11 +37,16 @@ int main(const int argc, char* argv[])
     DerTree* tree = GetTree(argc, argv);
 
     TreeDump(tree);
+
     // CalculateConsts(tree, tree->root);
+    
     // PrintExpression(tree);
+
     // CalculateNeutralOP(tree, tree->root);
 
-    Simplify(tree);
+    // Simplify(tree);
+
+    TakeDerivative(tree);
 
     TreeDump(tree);
 
@@ -39,8 +56,210 @@ int main(const int argc, char* argv[])
     return 0;
 }
 
+void TakeDerivative(DerTree* tree)
+{
+    assert(tree);
+
+    DerNode* tmp = Derivative(tree, tree->root);
+
+    DestructNodes(tree, tree->root);
+
+    tree->root = tmp;
+    SetParents(tree);
+    TreeDump(tree);
+
+    Simplify(tree);
+}
+
+void SetParents(DerTree* tree)
+{
+    tree->root->parent = tree->nil;
+    SetParentsRecursively(tree, tree->root);
+}
+
+void SetParentsRecursively(DerTree* tree, DerNode* node)
+{
+    if (node->right != tree->nil)
+    {
+        node->right->parent = node;
+        SetParentsRecursively(tree, node->right);
+    }
+
+    if (node->left  != tree->nil)
+    {
+        node->left->parent = node;
+        SetParentsRecursively(tree, node->left);
+    }
+}
+
+#define dR Derivative(tree, node->right)
+#define dL Derivative(tree, node->left)
+#define cR CopyTree  (tree, node->right)
+#define cL CopyTree  (tree, node->left)
+#define c  CopyTree  (tree, node)
+
+DerNode* Derivative(DerTree* tree, DerNode* node)
+{
+    assert(tree);
+    assert(node);
+
+    if (node == tree->nil) return tree->nil;
+
+    switch (node->type)
+    {
+        case TYPE_CONST :
+        {
+            return ConstructNode(TYPE_CONST, 0, tree->nil, tree->nil);
+        }
+        case TYPE_VAR :
+        {
+            return ConstructNode(TYPE_CONST, 1, tree->nil, tree->nil);
+        }
+        case TYPE_BIN_OP :
+        {
+            return SwitchBinOP(tree, node);
+        }
+        case TYPE_UN_OP :
+        {
+            return SwitchUnOP(tree, node);
+        }
+        default :
+        {
+            printf("Error type was discovored while taking taking a derivative\nline = %d\n", __LINE__);
+            break;
+        }
+    }
+}
+
+DerNode* CopyTree(DerTree* tree, DerNode* node)
+{
+    assert(tree);
+    assert(node);
+
+    if (node == tree->nil) return tree->nil;
+
+    return ConstructNode(node->type, node->value, cL, cR);
+}
+
+#define ADD(left, right) ConstructNode(TYPE_BIN_OP, OP_ADD, left, right)
+#define SUB(left, right) ConstructNode(TYPE_BIN_OP, OP_SUB, left, right)
+#define MUL(left, right) ConstructNode(TYPE_BIN_OP, OP_MUL, left, right)
+#define DIV(left, right) ConstructNode(TYPE_BIN_OP, OP_DIV, left, right)
+#define POW(left, right) ConstructNode(TYPE_BIN_OP, OP_POW, left, right)
+#define LN(right)        ConstructNode(TYPE_UN_OP,  OP_LN, tree->nil, right)
+#define CONST(NUM)       ConstructNode(TYPE_CONST, NUM, tree->nil, tree->nil)
+
+DerNode* SwitchBinOP(DerTree* tree, DerNode* node)
+{
+    assert(tree);
+    assert(node);
+
+    switch (node->value)
+    {
+        case OP_ADD :
+        {
+            return ADD(dL, dR);
+        }
+        case OP_SUB :
+        {
+            return SUB(dL, dR);
+        }
+        case OP_MUL :
+        {
+            return ADD(MUL(dL, cR), MUL(cL, dR));
+        }
+        case OP_DIV :
+        {
+            return DIV(SUB(MUL(dL, cR), MUL(cL, dR)), MUL(cR, cR));
+        }
+        case OP_POW :
+        {
+            if (IsThereVariable(tree, node->left))
+            {
+                return MUL(MUL(cR, POW(cL, CONST(node->right->value - 1))), dL);
+            } 
+            else if (IsThereVariable(tree, node->right))
+            {
+                return MUL(MUL(c, LN(cL)), dR);
+            }
+            else
+            {
+                return ConstructNode(TYPE_CONST, 0, tree->nil, tree->nil); 
+            }
+        }
+        default :
+        {
+            printf("Error: unknown binary operation, line %d\n", __LINE__);
+            return tree->nil;
+        }
+    }
+}
+
+#define COS(right)  ConstructNode(TYPE_UN_OP, OP_COS,  tree->nil, right)
+#define SIN(right)  ConstructNode(TYPE_UN_OP, OP_SIN,  tree->nil, right)
+#define SQRT(right) ConstructNode(TYPE_UN_OP, OP_SQRT, tree->nil, right)
+
+DerNode* SwitchUnOP(DerTree* tree, DerNode* node)
+{
+    assert(tree);
+    assert(node);
+
+    switch (node->value)
+    {
+        case OP_SIN :
+        {
+            return MUL(COS(cR), dR);
+        }
+        case OP_COS :
+        {
+            return MUL(MUL(SIN(cR), dR), CONST(-1));
+        }
+        case OP_TG :
+        {
+            return MUL(DIV(CONST(1), POW(COS(cR), CONST(2))), dR);
+        }
+        case OP_CTG :
+        {
+            return MUL(DIV(CONST(-1), POW(SIN(cR), CONST(2))), dR);
+        }
+        case OP_SQRT :
+        {
+           return MUL(DIV(CONST(1), MUL(CONST(2), SQRT(cR))), dR); 
+        }
+        case OP_LN :
+        {
+            return MUL(DIV(CONST(1), cR), dR);
+        }
+        case OP_EXP :
+        {
+            return MUL(c, dR);
+        }
+        default :
+        {
+            printf("Error: unknown unary operation, line %d\n", __LINE__);
+            return tree->nil;
+        }
+    }
+}
+
+#undef dR
+#undef dL
+#undef cR
+#undef cL
+#undef c 
+#undef ADD
+#undef SUB
+#undef MUL
+#undef DIV
+#undef SIN
+#undef COS
+#undef SQRT
+#undef CONST
+
 void Simplify(DerTree* tree)
 {
+    assert(tree);
+
     bool sth_has_changed = true;
 
     while (sth_has_changed)
@@ -76,19 +295,22 @@ void CalculateConsts(DerTree* tree, DerNode* node, bool* sth_has_changed)
         }
     }
 
-    if (node->type == TYPE_UN_OP)
-    {
-        if (Rtype == TYPE_CONST)
-        {
-            node->type = TYPE_CONST;
-            CalculateUnOP(tree, node);
-            *sth_has_changed = true;
-        }
-    }
+    // if (node->type == TYPE_UN_OP)
+    // {
+    //     if (Rtype == TYPE_CONST)
+    //     {
+    //         node->type = TYPE_CONST;
+    //         CalculateUnOP(tree, node);
+    //         *sth_has_changed = true;
+    //     }
+    // }
 }
 
 void CalculateBinOP(DerTree* tree, DerNode* node)
 {
+    assert(tree);
+    assert(node);
+
     switch (node->value)
     {
         case OP_ADD :
@@ -134,6 +356,9 @@ void CalculateBinOP(DerTree* tree, DerNode* node)
 
 void CalculateUnOP(DerTree* tree, DerNode* node)
 {
+    assert(tree);
+    assert(node);
+
     switch (node->value)
     {
         case OP_SIN :
@@ -164,6 +389,18 @@ void CalculateUnOP(DerTree* tree, DerNode* node)
             if (Rval >= 0)
             {
                 node->value = (ElemT)sqrt(Rval);
+            }
+            else
+            {
+                node->type = NODE_ERROR;
+            }
+            break;
+        }
+        case OP_LN :
+        {
+            if (Rval >= 0)
+            {
+                node->value = (ElemT)log(Rval);
             }
             else
             {
@@ -220,6 +457,19 @@ void CalculateNeutralOP(DerTree* tree, DerNode* node, bool* sth_has_changed)
                 CalculateNeutralPow(tree, node);
                 break;  
             }
+            case OP_LN :
+            {
+                CalculateNeutralLn(tree, node);
+            }
+            case OP_EXP :
+            {
+                CalculateNeutralExp(tree, node);
+            }
+            default :
+            {
+                printf("Error in calculating neutrals : unknown value\nline = %d", __LINE__);
+                break;
+            }
         }
         if (node->type != TYPE_BIN_OP) 
         {
@@ -230,6 +480,9 @@ void CalculateNeutralOP(DerTree* tree, DerNode* node, bool* sth_has_changed)
 
 void CalculateNeutralAdd(DerTree* tree, DerNode* node)
 {
+    assert(tree);
+    assert(node);
+
     if (Rval == ADD_NEUT && Rtype == TYPE_CONST)
     {
         KillFatherAndBrother(tree, node->left);
@@ -248,6 +501,9 @@ void CalculateNeutralSub(DerTree* tree, DerNode* node)
 }
 void CalculateNeutralMul(DerTree* tree, DerNode* node)
 {
+    assert(tree);
+    assert(node);
+    
     if ((Rval == MUL_NULL && Rtype == TYPE_CONST) || 
         (Lval == MUL_NULL && Ltype == TYPE_CONST))
     {
@@ -264,6 +520,9 @@ void CalculateNeutralMul(DerTree* tree, DerNode* node)
 }
 void CalculateNeutralDiv(DerTree* tree, DerNode* node)
 {
+    assert(tree);
+    assert(node);
+    
     if (Lval == DIV_NULL && Ltype == TYPE_CONST)
     {
         KillYourselfAndChildren(tree, node, DIV_NULL);
@@ -275,6 +534,9 @@ void CalculateNeutralDiv(DerTree* tree, DerNode* node)
 }
 void CalculateNeutralPow(DerTree* tree, DerNode* node)
 {
+    assert(tree);
+    assert(node);
+    
     if (Rval == POW_NULL && Rtype == TYPE_CONST)
     {
         KillYourselfAndChildren(tree, node, POW_NEUT);
@@ -293,7 +555,42 @@ void CalculateNeutralPow(DerTree* tree, DerNode* node)
     }
 }
 
+void CalculateNeutralLn(DerTree* tree, DerNode* node)
+{
+    assert(tree);
+    assert(node);
+
+    if (Rval == LN_NEUT)
+    {
+        KillYourselfAndChildren(tree, node, LN_NULL);
+    }
+}
+
+void CalculateNeutralExp(DerTree* tree, DerNode* node)
+{
+    assert(tree);
+    assert(node);
+
+    if (Rval == EXP_NULL)
+    {
+        KillYourselfAndChildren(tree, node, EXP_NEUT);
+    }
+}
+
+
+
 #undef Rval
 #undef Lval
 #undef Rtype
 #undef Ltype
+
+bool IsThereVariable(DerTree* tree, DerNode* node)
+{
+    if (node == tree->nil) return false;
+
+    if (node->type == TYPE_VAR) return true;
+
+    if (IsThereVariable(tree, node->left)) return true;
+
+    return IsThereVariable(tree, node->right);
+}

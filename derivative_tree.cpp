@@ -33,6 +33,7 @@ void     GetUnaryOperator          (DerNode* node, char* buffer, size_t* ofs);
 DerNode* ConstructNode             (NodeType type, ElemT value, DerNode* left, DerNode* right);
 void     TreeDump                  (DerTree* tree);
 void     PrintNodes                (DerTree* tree, DerNode* node, FILE* dump_file);
+void     PrintNodesHard            (DerTree* tree, DerNode* node, FILE* dump_file);
 void     GetNames                  (char* dot_cmd, char* jpg_cmd);
 size_t   GetJPGNumber              ();
 void     PrintExpression           (DerTree* tree);
@@ -310,7 +311,7 @@ void GetBinaryOperator(DerNode* node, char* buffer, size_t* ofs)
     assert(buffer);
 
     size_t num_of_operator = NO_MATCHES;
-    for (size_t i = 0; i < NUM_UNARY_OP; ++i)
+    for (size_t i = 0; i < NUM_BINARY_OP; ++i)
     {
         if (strncmp(buffer + *ofs, BINARY_OP[i], strlen(BINARY_OP[i])) == 0)
         {
@@ -349,8 +350,8 @@ DerNode* ConstructNode(NodeType type, ElemT value, DerNode* left, DerNode* right
     node->type  = type;
     node->value = value;
 
-    node->left  = left;
-    node->right = right;
+    node->left   = left;
+    node->right  = right;
 
     return node;
 }
@@ -387,23 +388,28 @@ void PrintNodes(DerTree* tree, DerNode* node, FILE* dump_file)
 
     if (node->type == NODE_ERROR || node->type == TYPE_NIL)
     {
-        fprintf(dump_file, "\"%p\"[style=\"filled\", fillcolor=\"#EF4C3A\", fontcolor=\"black\", label=\"%d\"]", node, node->value);
+        fprintf(dump_file, "\"%p\"[style=\"filled\", fillcolor=\"#EF4C3A\", label=\"%d\"]",
+                node, node->value);
     }
     else if (node->type == TYPE_CONST)
     {
-        fprintf(dump_file, "\"%p\"[style=\"filled\", fillcolor=\"#9BC3F7\", fontcolor=\"black\", label=\"%d\"]", node, node->value);
+        fprintf(dump_file, "\"%p\"[style=\"filled\", fillcolor=\"#9BC3F7\", label=\"%d\"]",
+                node, node->value);
     }
     else if (node->type == TYPE_VAR)
     { 
-        fprintf(dump_file, "\"%p\"[style=\"filled\", fillcolor=\"#C6F7DD\", fontcolor=\"black\", label=\"%c\"]", node, node->value);
+        fprintf(dump_file, "\"%p\"[style=\"filled\", fillcolor=\"#C6F7DD\", label=\"%c\"]",
+                node, node->value);
     }
     else if (node->type == TYPE_BIN_OP)
     {
-        fprintf(dump_file, "\"%p\"[style=\"filled\", fillcolor=\"#F6F7C6\", fontcolor=\"black\", label=\"%s\"]", node, BINARY_OP[node->value]);
+        fprintf(dump_file, "\"%p\"[style=\"filled\", fillcolor=\"#F6F7C6\", label=\"%s\"]",
+                node, BINARY_OP[node->value]);
     }
-    else
+    else if (node->type == TYPE_UN_OP)
     {
-        fprintf(dump_file, "\"%p\"[style=\"filled\", fillcolor=\"#F6F796\", fontcolor=\"black\", label=\"%s\"]", node, UNARY_OP[node->value]);
+        fprintf(dump_file, "\"%p\"[style=\"filled\", fillcolor=\"#F6F796\", label=\"%s\"]",
+                node, UNARY_OP[node->value]);
     }
 
     if (node->left != tree->nil)
@@ -416,6 +422,50 @@ void PrintNodes(DerTree* tree, DerNode* node, FILE* dump_file)
     {
         fprintf(dump_file, "\"%p\":se->\"%p\";\n", node, node->right);
         PrintNodes(tree, node->right, dump_file);
+    }
+}
+
+void PrintNodesHard(DerTree* tree, DerNode* node, FILE* dump_file)
+{
+    assert(tree);
+    assert(dump_file);
+
+    if (node->type == NODE_ERROR || node->type == TYPE_NIL)
+    {
+        fprintf(dump_file, "\"%p\"[shape=\"record\", style=\"filled\", fillcolor=\"#EF4C3A\", label=\"%d|p: %p|%p|{l: %p|r: %p}\"]",
+                node, node->value, node->parent, node, node->left, node->right);
+    }
+    else if (node->type == TYPE_CONST)
+    {
+        fprintf(dump_file, "\"%p\"[shape=\"record\", style=\"filled\", fillcolor=\"#9BC3F7\", label=\"%d|p: %p|%p|{l: %p|r: %p}\"]",
+                node, node->value, node->parent, node, node->left, node->right);
+    }
+    else if (node->type == TYPE_VAR)
+    { 
+        fprintf(dump_file, "\"%p\"[shape=\"record\", style=\"filled\", fillcolor=\"#C6F7DD\", label=\"%c|p: %p|%p|{l: %p|r: %p}\"]",
+                node, node->value, node->parent, node, node->left, node->right);
+    }
+    else if (node->type == TYPE_BIN_OP)
+    {
+        fprintf(dump_file, "\"%p\"[shape=\"record\", style=\"filled\", fillcolor=\"#F6F7C6\", label=\"%s|p: %p|%p|{l: %p|r: %p}\"]",
+                node, BINARY_OP[node->value], node->parent, node, node->left, node->right);
+    }
+    else
+    {
+        fprintf(dump_file, "\"%p\"[shape=\"record\", style=\"filled\", fillcolor=\"#F6F796\", label=\"%s|p: %p|%p|{l: %p|r: %p}\"]",
+                node, UNARY_OP[node->value], node->parent, node, node->left, node->right);
+    }
+
+    if (node->left != tree->nil)
+    {
+        fprintf(dump_file, "\"%p\":sw->\"%p\";\n", node, node->left);
+        PrintNodesHard(tree, node->left, dump_file);
+    }
+    
+    if (node->right != tree->nil)
+    {
+        fprintf(dump_file, "\"%p\":se->\"%p\";\n", node, node->right);
+        PrintNodesHard(tree, node->right, dump_file);
     }
 }
 
