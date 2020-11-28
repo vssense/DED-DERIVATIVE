@@ -37,14 +37,14 @@ enum UnaryOperators
 {
 	OP_SIN  = 0,
 	OP_COS  = 1,
-	OP_TG   = 2,
+	OP_TAN  = 2,
 	OP_CTG  = 3,
 	OP_SQRT = 4,
     OP_LN   = 5,
     OP_EXP  = 6
 };
 
-static const char* UNARY_OP[] = {"sin", "cos", "tg", "ctg", "sqrt", "ln", "exp"};
+static const char* UNARY_OP[] = {"sin", "cos", "tan", "ctg", "sqrt", "ln", "exp"};
 static const size_t NUM_UNARY_OP = 7;
 
 static const size_t NO_MATCHES = 3232;

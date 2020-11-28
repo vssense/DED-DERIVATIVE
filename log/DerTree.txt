@@ -1,16 +1,18 @@
 digraph G{
 node [shape="circle"]
-"00BF5AC0"[style="filled", fillcolor="#F6F7C6", label="*"]"00BF5AC0":sw->"00BF5960";
-"00BF5960"[style="filled", fillcolor="#F6F796", label="exp"]"00BF5960":se->"00BF5940";
-"00BF5940"[style="filled", fillcolor="#F6F7C6", label="*"]"00BF5940":sw->"00BF59C0";
-"00BF59C0"[style="filled", fillcolor="#C6F7DD", label="x"]"00BF5940":se->"00BF5720";
-"00BF5720"[style="filled", fillcolor="#F6F796", label="ln"]"00BF5720":se->"00BF5A60";
-"00BF5A60"[style="filled", fillcolor="#C6F7DD", label="x"]"00BF5AC0":se->"00BF5880";
-"00BF5880"[style="filled", fillcolor="#F6F7C6", label="+"]"00BF5880":sw->"00BF5920";
-"00BF5920"[style="filled", fillcolor="#F6F796", label="ln"]"00BF5920":se->"00BF5800";
-"00BF5800"[style="filled", fillcolor="#C6F7DD", label="x"]"00BF5880":se->"00BF5A20";
-"00BF5A20"[style="filled", fillcolor="#F6F7C6", label="*"]"00BF5A20":sw->"00BF0F80";
-"00BF0F80"[style="filled", fillcolor="#C6F7DD", label="x"]"00BF5A20":se->"00BF0F40";
-"00BF0F40"[style="filled", fillcolor="#F6F7C6", label="/"]"00BF0F40":sw->"00BF0F20";
-"00BF0F20"[style="filled", fillcolor="#9BC3F7", label="1"]"00BF0F40":se->"00BF0F00";
-"00BF0F00"[style="filled", fillcolor="#C6F7DD", label="x"]}
+"006C0CE8"[style="filled", fillcolor="#F6F7C6", label="*"]"006C0CE8":sw->"006C0D08";
+"006C0D08"[style="filled", fillcolor="#F6F7C6", label="+"]"006C0D08":sw->"006C0D28";
+"006C0D28"[style="filled", fillcolor="#F6F7C6", label="*"]"006C0D28":sw->"006C0D48";
+"006C0D48"[style="filled", fillcolor="#9BC3F7", label="3"]"006C0D28":se->"006C0D68";
+"006C0D68"[style="filled", fillcolor="#F6F796", label="tan"]"006C0D68":se->"006C0D88";
+"006C0D88"[style="filled", fillcolor="#C6F7DD", label="x"]"006C0D08":se->"006C0DA8";
+"006C0DA8"[style="filled", fillcolor="#F6F796", label="cos"]"006C0DA8":se->"006C0DC8";
+"006C0DC8"[style="filled", fillcolor="#F6F796", label="sin"]"006C0DC8":se->"006C0DE8";
+"006C0DE8"[style="filled", fillcolor="#F6F796", label="exp"]"006C0DE8":se->"006C0E08";
+"006C0E08"[style="filled", fillcolor="#C6F7DD", label="x"]"006C0CE8":se->"006C0E28";
+"006C0E28"[style="filled", fillcolor="#F6F7C6", label="-"]"006C0E28":sw->"006C0E48";
+"006C0E48"[style="filled", fillcolor="#9BC3F7", label="10"]"006C0E28":se->"006C0E68";
+"006C0E68"[style="filled", fillcolor="#F6F7C6", label="^"]"006C0E68":sw->"006C04B0";
+"006C04B0"[style="filled", fillcolor="#9BC3F7", label="2"]"006C0E68":se->"006C6D10";
+"006C6D10"[style="filled", fillcolor="#F6F796", label="ln"]"006C6D10":se->"006C6E90";
+"006C6E90"[style="filled", fillcolor="#C6F7DD", label="x"]}

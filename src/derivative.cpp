@@ -36,13 +36,13 @@ int main(const int argc, char* argv[])
 {
     DerTree* tree = GetTree(argc, argv);
 
-    TreeDump(tree);
+    // TreeDump(tree);
 
     TakeDerivative(tree);
 
-    // PrintExpression(tree);
+    PrintExpression(tree);
 
-    TreeDump(tree);
+    // TreeDump(tree);
 
     Destruct(tree);
     Delete(tree);
@@ -60,7 +60,6 @@ void TakeDerivative(DerTree* tree)
 
     tree->root = tmp;
     SetParents(tree);
-    TreeDump(tree);
 
     Simplify(tree);
 }
@@ -172,6 +171,7 @@ DerNode* SwitchBinOP(DerTree* tree, DerNode* node)
         {
             bool IsVarInRight = IsThereVariable(tree, node->right);
             bool IsVarInLeft  = IsThereVariable(tree, node->left);
+            
             if (IsVarInLeft && IsVarInRight)
             {
                 return Derivative(tree, EXP(MUL(cR, LN(cL))));
@@ -216,7 +216,7 @@ DerNode* SwitchUnOP(DerTree* tree, DerNode* node)
         {
             return MUL(MUL(SIN(cR), dR), CONST(-1));
         }
-        case OP_TG :
+        case OP_TAN :
         {
             return MUL(DIV(CONST(1), POW(COS(cR), CONST(2))), dR);
         }
@@ -373,7 +373,7 @@ void CalculateUnOP(DerTree* tree, DerNode* node)
             node->value = (ElemT)cos(Rval);
             break;
         }
-        case OP_TG :
+        case OP_TAN :
         {
             node->value = (ElemT)tan(Rval);
             break;

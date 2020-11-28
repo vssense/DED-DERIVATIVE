@@ -2,11 +2,11 @@
 
 
 const size_t MAX_INPUT_SIZE = 512;
-const char*  STANDARD_INPUT = "derivative.txt";
+const char*  STANDARD_INPUT = "src\\derivative.txt";
 
-static const char* TECH_FILE = "tech.txt";
+static const char* TECH_FILE = "tech\\tech.tex";
 
-const size_t DOT_CMD_SIZE = 64; 
+const size_t DOT_CMD_SIZE = 64;
 const size_t JPG_CMD_SIZE = 32;
 const char*  STANDARD_DOT_TXT_FILE_NAME = "log\\DerTree.txt";
 const char*  DUMP_FILE_NAME = "log\\numsjpg.txt";
@@ -38,6 +38,8 @@ void     GetNames                  (char* dot_cmd, char* jpg_cmd);
 size_t   GetJPGNumber              ();
 void     PrintExpression           (DerTree* tree);
 void     PrintExpressionRecursively(DerTree* tree, DerNode* node, FILE* tech_file);
+void     PrintTexBinOP             (FILE* file, DerNode* node);
+
 
 
 
@@ -513,17 +515,33 @@ void PrintExpression(DerTree* tree)
     FILE* tech_file = fopen(TECH_FILE, "w");
     assert(tech_file);
 
+    fprintf(tech_file, "\\documentclass[12pt]{article}\n"
+                       "\\begin{document}             \n$");
+
     PrintExpressionRecursively(tree, tree->root, tech_file);
 
+    fprintf(tech_file,"$\n\\end{document}\n");
+
     fclose(tech_file);
-    system(TECH_FILE);
+    system("pdflatex tech\\tech.tex");
+    system("tech.pdf");
 }
 
 void PrintExpressionRecursively(DerTree* tree, DerNode* node, FILE* tech_file)
 {
     if (node == tree->nil) return;
 
-    fprintf(tech_file, "(");
+    if ((node->type == TYPE_BIN_OP && (node->value == OP_ADD ||
+         node->value == OP_SUB || node->value == OP_POW)) ||
+        (node->parent->type == TYPE_UN_OP && node->type != TYPE_VAR))
+    {
+        fprintf(tech_file, "{(");    
+    }
+    else
+    {
+        fprintf(tech_file, "{");
+    }
+
     PrintExpressionRecursively(tree, node->left, tech_file);
     
     if (node->type == TYPE_CONST)
@@ -536,13 +554,62 @@ void PrintExpressionRecursively(DerTree* tree, DerNode* node, FILE* tech_file)
     }
     else if (node->type == TYPE_BIN_OP)
     {
-        fprintf(tech_file, " %s ", BINARY_OP[node->value]);
+        PrintTexBinOP(tech_file, node);
     }
     else
     {
-        fprintf(tech_file, "%s", UNARY_OP[node->value]);
+        fprintf(tech_file, "\\%s ", UNARY_OP[node->value]);
     }
     PrintExpressionRecursively(tree, node->right, tech_file);
-    fprintf(tech_file, ")");
+
+    if ((node->type == TYPE_BIN_OP && (node->value == OP_ADD ||
+         node->value == OP_SUB || node->value == OP_POW)) ||
+        (node->parent->type == TYPE_UN_OP && node->type != TYPE_VAR))
+    {
+        fprintf(tech_file, ")}");    
+    }
+    else
+    {
+        fprintf(tech_file, "}");
+    }
 }
 
+void PrintTexBinOP(FILE* file, DerNode* node)
+{
+    assert(file);
+    assert(node);
+
+    switch (node->value)
+    {
+        case OP_ADD :
+        {
+            fprintf(file, " + ");
+            break;
+        }
+        case OP_SUB :
+        {
+            fprintf(file, " - ");
+            break;
+        }
+        case OP_MUL :
+        {
+            fprintf(file, " \\cdot ");
+            break;
+        }
+        case OP_DIV :
+        {
+            fprintf(file, " \\over ");
+            break;
+        }
+        case OP_POW :
+        {
+            fprintf(file, " ^ ");
+            break;
+        }
+        default :
+        {
+            printf("Tex error : unknown binary command\nline = %d", __LINE__);
+            break;
+        }
+    }
+}
