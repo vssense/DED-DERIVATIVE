@@ -109,7 +109,7 @@ void DestructNode(DerTree* tree, DerNode* node)
     node->left   = nullptr;
     node->parent = nullptr;
 
-    node->value = 0;
+    node->value.number = 0;
 
     free(node);
 }
@@ -131,8 +131,8 @@ void KillYourselfAndChildren(DerTree* tree, DerNode* node, ElemT new_value)
     assert(node);
     KillChildren(tree, node);
 
-    node->value = new_value;
-    node->type = TYPE_CONST;
+    node->value.number = new_value;
+    node->type         = TYPE_CONST;
 }
 
 void KillFatherAndBrother(DerTree* tree, DerNode* node)
@@ -150,7 +150,7 @@ void KillFatherAndBrother(DerTree* tree, DerNode* node)
     }
 
     DerNode* father = node->parent;
-    node->parent = node->parent->parent;
+    node->parent    = node->parent->parent;
 
     if (father->parent != tree->nil)
     {
@@ -277,8 +277,8 @@ void GetConstant(DerNode* node, char* buffer, size_t* ofs)
     assert(buffer);
 
     size_t start = 0;
-    size_t end = 0;
-    sscanf(buffer + *ofs, "%n%d%n", &start, &node->value, &end);  //<<<------ change to %lf if double
+    size_t end   = 0;
+    sscanf(buffer + *ofs, "%n%lf%n", &start, &node->value.number, &end);
 
     *ofs += end - start;
     node->type = TYPE_CONST;
@@ -289,8 +289,8 @@ void GetVariative(DerNode* node, char* buffer, size_t* ofs)
     assert(node);
     assert(buffer);
 
-    node->value = buffer[*ofs];
-    node->type  = TYPE_VAR;
+    node->value.var = buffer[*ofs];
+    node->type      = TYPE_VAR;
     (*ofs)++;
 }
 
@@ -311,14 +311,12 @@ void GetBinaryOperator(DerNode* node, char* buffer, size_t* ofs)
     assert(node);
     assert(buffer);
 
-    size_t num_of_operator = NO_MATCHES;
     for (size_t i = 0; i < NUM_BINARY_OP; ++i)
     {
         if (strncmp(buffer + *ofs, BINARY_OP[i], strlen(BINARY_OP[i])) == 0)
         {
-            num_of_operator = i;
-            node->value = num_of_operator;
-            node->type  = TYPE_BIN_OP;
+            node->value.op = i;
+            node->type     = TYPE_BIN_OP;
             (*ofs)++;
             break;
         }
@@ -330,29 +328,27 @@ void GetUnaryOperator(DerNode* node, char* buffer, size_t* ofs)
     assert(node);
     assert(buffer);
 
-    size_t num_of_operator = NO_MATCHES;
     for (size_t i = 0; i < NUM_UNARY_OP; ++i)
     {
         if (strncmp(buffer + *ofs, UNARY_OP[i], strlen(UNARY_OP[i])) == 0)
         {
-            num_of_operator = i;
-            node->value = num_of_operator;
-            node->type = TYPE_UN_OP;
-            (*ofs) += strlen(UNARY_OP[num_of_operator]);
+            node->value.op = i;
+            node->type     = TYPE_UN_OP;
+            (*ofs) += strlen(UNARY_OP[i]);
             break;
         }
     }
 }
 
-DerNode* ConstructNode(NodeType type, ElemT value, DerNode* left, DerNode* right)
+DerNode* ConstructNode(NodeType type, Value value, DerNode* left, DerNode* right)
 {
     DerNode* node = (DerNode*)calloc(1, sizeof(DerNode));
 
     node->type  = type;
     node->value = value;
 
-    node->left   = left;
-    node->right  = right;
+    node->left  = left;
+    node->right = right;
 
     return node;
 }
@@ -389,28 +385,28 @@ void PrintNodes(DerTree* tree, DerNode* node, FILE* dump_file)
 
     if (node->type == NODE_ERROR || node->type == TYPE_NIL)
     {
-        fprintf(dump_file, "\"%p\"[style=\"filled\", fillcolor=\"#EF4C3A\", label=\"%d\"]",
-                node, node->value);
+        fprintf(dump_file, "\"%p\"[style=\"filled\", fillcolor=\"#EF4C3A\", label=\"%lg\"]",
+                node, node->value.number);
     }
     else if (node->type == TYPE_CONST)
     {
-        fprintf(dump_file, "\"%p\"[style=\"filled\", fillcolor=\"#9BC3F7\", label=\"%d\"]",
-                node, node->value);
+        fprintf(dump_file, "\"%p\"[style=\"filled\", fillcolor=\"#9BC3F7\", label=\"%lg\"]",
+                node, node->value.number);
     }
     else if (node->type == TYPE_VAR)
     { 
         fprintf(dump_file, "\"%p\"[style=\"filled\", fillcolor=\"#C6F7DD\", label=\"%c\"]",
-                node, node->value);
+                node, node->value.var);
     }
     else if (node->type == TYPE_BIN_OP)
     {
         fprintf(dump_file, "\"%p\"[style=\"filled\", fillcolor=\"#F6F7C6\", label=\"%s\"]",
-                node, BINARY_OP[node->value]);
+                node, BINARY_OP[node->value.op]);
     }
     else if (node->type == TYPE_UN_OP)
     {
         fprintf(dump_file, "\"%p\"[style=\"filled\", fillcolor=\"#F6F796\", label=\"%s\"]",
-                node, UNARY_OP[node->value]);
+                node, UNARY_OP[node->value.op]);
     }
 
     if (node->left != tree->nil)
@@ -433,28 +429,28 @@ void PrintNodesHard(DerTree* tree, DerNode* node, FILE* dump_file)
 
     if (node->type == NODE_ERROR || node->type == TYPE_NIL)
     {
-        fprintf(dump_file, "\"%p\"[shape=\"record\", style=\"filled\", fillcolor=\"#EF4C3A\", label=\"%d|p: %p|%p|{l: %p|r: %p}\"]",
-                node, node->value, node->parent, node, node->left, node->right);
+        fprintf(dump_file, "\"%p\"[shape=\"record\", style=\"filled\", fillcolor=\"#EF4C3A\", label=\"%lg|p: %p|%p|{l: %p|r: %p}\"]",
+                node, node->value.number, node->parent, node, node->left, node->right);
     }
     else if (node->type == TYPE_CONST)
     {
-        fprintf(dump_file, "\"%p\"[shape=\"record\", style=\"filled\", fillcolor=\"#9BC3F7\", label=\"%d|p: %p|%p|{l: %p|r: %p}\"]",
-                node, node->value, node->parent, node, node->left, node->right);
+        fprintf(dump_file, "\"%p\"[shape=\"record\", style=\"filled\", fillcolor=\"#9BC3F7\", label=\"%lg|p: %p|%p|{l: %p|r: %p}\"]",
+                node, node->value.number, node->parent, node, node->left, node->right);
     }
     else if (node->type == TYPE_VAR)
     { 
         fprintf(dump_file, "\"%p\"[shape=\"record\", style=\"filled\", fillcolor=\"#C6F7DD\", label=\"%c|p: %p|%p|{l: %p|r: %p}\"]",
-                node, node->value, node->parent, node, node->left, node->right);
+                node, node->value.var, node->parent, node, node->left, node->right);
     }
     else if (node->type == TYPE_BIN_OP)
     {
         fprintf(dump_file, "\"%p\"[shape=\"record\", style=\"filled\", fillcolor=\"#F6F7C6\", label=\"%s|p: %p|%p|{l: %p|r: %p}\"]",
-                node, BINARY_OP[node->value], node->parent, node, node->left, node->right);
+                node, BINARY_OP[node->value.op], node->parent, node, node->left, node->right);
     }
     else
     {
         fprintf(dump_file, "\"%p\"[shape=\"record\", style=\"filled\", fillcolor=\"#F6F796\", label=\"%s|p: %p|%p|{l: %p|r: %p}\"]",
-                node, UNARY_OP[node->value], node->parent, node, node->left, node->right);
+                node, UNARY_OP[node->value.op], node->parent, node, node->left, node->right);
     }
 
     if (node->left != tree->nil)
@@ -530,8 +526,8 @@ void PrintExpressionRecursively(DerTree* tree, DerNode* node, FILE* tech_file)
 {
     if (node == tree->nil) return;
 
-    if ((node->type == TYPE_BIN_OP && (node->value == OP_ADD ||
-         node->value == OP_SUB || node->value == OP_POW))    ||
+    if ((node->type == TYPE_BIN_OP && (node->value.op == OP_ADD  ||
+         node->value.op == OP_SUB  ||  node->value.op == OP_POW))||
         (node->parent->type == TYPE_UN_OP && node->type != TYPE_VAR))
     {
         fprintf(tech_file, "{(");    
@@ -545,11 +541,11 @@ void PrintExpressionRecursively(DerTree* tree, DerNode* node, FILE* tech_file)
     
     if (node->type == TYPE_CONST)
     {
-        fprintf(tech_file, "%d", node->value);
+        fprintf(tech_file, "%lg", node->value.number);
     }
     else if (node->type == TYPE_VAR)
     { 
-        fprintf(tech_file, "%c", node->value);
+        fprintf(tech_file, "%c", node->value.var);
     }
     else if (node->type == TYPE_BIN_OP)
     {
@@ -557,12 +553,12 @@ void PrintExpressionRecursively(DerTree* tree, DerNode* node, FILE* tech_file)
     }
     else
     {
-        fprintf(tech_file, "\\%s ", UNARY_OP[node->value]);
+        fprintf(tech_file, "\\%s ", UNARY_OP[node->value.op]);
     }
     PrintExpressionRecursively(tree, node->right, tech_file);
 
-    if ((node->type == TYPE_BIN_OP && (node->value == OP_ADD ||
-         node->value == OP_SUB || node->value == OP_POW))    ||
+    if ((node->type == TYPE_BIN_OP && (node->value.op == OP_ADD  ||
+         node->value.op == OP_SUB  ||  node->value.op == OP_POW))||
         (node->parent->type == TYPE_UN_OP && node->type != TYPE_VAR))
     {
         fprintf(tech_file, ")}");    
@@ -578,7 +574,7 @@ void PrintTexBinOP(FILE* file, DerNode* node)
     assert(file);
     assert(node);
 
-    switch (node->value)
+    switch (node->value.op)
     {
         case OP_ADD :
         {

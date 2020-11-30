@@ -91,6 +91,15 @@ void SetParentsRecursively(DerTree* tree, DerNode* node)
 #define cL CopyTree  (tree, node->left)
 #define c  CopyTree  (tree, node)
 
+#define ADD(left, right) ConstructNode(TYPE_BIN_OP, { .op = OP_ADD  }, left, right)
+#define SUB(left, right) ConstructNode(TYPE_BIN_OP, { .op = OP_SUB  }, left, right)
+#define MUL(left, right) ConstructNode(TYPE_BIN_OP, { .op = OP_MUL  }, left, right)
+#define DIV(left, right) ConstructNode(TYPE_BIN_OP, { .op = OP_DIV  }, left, right)
+#define POW(left, right) ConstructNode(TYPE_BIN_OP, { .op = OP_POW  }, left, right)
+#define EXP(right)       ConstructNode(TYPE_UN_OP,  { .op = OP_EXP  }, tree->nil, right)
+#define LN(right)        ConstructNode(TYPE_UN_OP,  { .op = OP_LN   }, tree->nil, right)
+#define CONST(NUM)       ConstructNode(TYPE_CONST,  { .number = NUM }, tree->nil, tree->nil)
+
 DerNode* Derivative(DerTree* tree, DerNode* node)
 {
     assert(tree);
@@ -102,11 +111,11 @@ DerNode* Derivative(DerTree* tree, DerNode* node)
     {
         case TYPE_CONST :
         {
-            return ConstructNode(TYPE_CONST, 0, tree->nil, tree->nil);
+            return CONST(0);
         }
         case TYPE_VAR :
         {
-            return ConstructNode(TYPE_CONST, 1, tree->nil, tree->nil);
+            return CONST(1);
         }
         case TYPE_BIN_OP :
         {
@@ -135,21 +144,12 @@ DerNode* CopyTree(DerTree* tree, DerNode* node)
     return ConstructNode(node->type, node->value, cL, cR);
 }
 
-#define ADD(left, right) ConstructNode(TYPE_BIN_OP, OP_ADD, left, right)
-#define SUB(left, right) ConstructNode(TYPE_BIN_OP, OP_SUB, left, right)
-#define MUL(left, right) ConstructNode(TYPE_BIN_OP, OP_MUL, left, right)
-#define DIV(left, right) ConstructNode(TYPE_BIN_OP, OP_DIV, left, right)
-#define POW(left, right) ConstructNode(TYPE_BIN_OP, OP_POW, left, right)
-#define EXP(right)       ConstructNode(TYPE_UN_OP,  OP_EXP, tree->nil, right)
-#define LN(right)        ConstructNode(TYPE_UN_OP,  OP_LN,  tree->nil, right)
-#define CONST(NUM)       ConstructNode(TYPE_CONST,  NUM,    tree->nil, tree->nil)
-
 DerNode* SwitchBinOP(DerTree* tree, DerNode* node)
 {
     assert(tree);
     assert(node);
 
-    switch (node->value)
+    switch (node->value.op)
     {
         case OP_ADD :
         {
@@ -186,7 +186,7 @@ DerNode* SwitchBinOP(DerTree* tree, DerNode* node)
             }
             else
             {
-                return ConstructNode(TYPE_CONST, 0, tree->nil, tree->nil); 
+                return CONST(0); 
             }
         }
         default :
@@ -197,16 +197,16 @@ DerNode* SwitchBinOP(DerTree* tree, DerNode* node)
     }
 }
 
-#define COS(right)  ConstructNode(TYPE_UN_OP, OP_COS,  tree->nil, right)
-#define SIN(right)  ConstructNode(TYPE_UN_OP, OP_SIN,  tree->nil, right)
-#define SQRT(right) ConstructNode(TYPE_UN_OP, OP_SQRT, tree->nil, right)
+#define COS(right)  ConstructNode(TYPE_UN_OP, { .op = OP_COS  }, tree->nil, right)
+#define SIN(right)  ConstructNode(TYPE_UN_OP, { .op = OP_SIN  }, tree->nil, right)
+#define SQRT(right) ConstructNode(TYPE_UN_OP, { .op = OP_SQRT }, tree->nil, right)
 
 DerNode* SwitchUnOP(DerTree* tree, DerNode* node)
 {
     assert(tree);
     assert(node);
 
-    switch (node->value)
+    switch (node->value.op)
     {
         case OP_SIN :
         {
@@ -272,8 +272,9 @@ void Simplify(DerTree* tree)
     }
 }
 
-#define Rval  node->right->value
-#define Lval  node->left->value
+#define Rval  node->right->value.number
+#define Lval  node->left->value.number
+#define VAL   node->value.number
 #define Rtype node->right->type
 #define Ltype node->left->type
 
@@ -313,28 +314,28 @@ void CalculateBinOP(DerTree* tree, DerNode* node)
     assert(tree);
     assert(node);
 
-    switch (node->value)
+    switch (node->value.op)
     {
         case OP_ADD :
         {
-            node->value = Lval + Rval;
+            VAL = Lval + Rval;
             break;
         }
         case OP_SUB :
         {
-            node->value = Lval - Rval;
+            VAL = Lval - Rval;
             break;
         }
         case OP_MUL :
         {
-            node->value = Lval * Rval;
+            VAL = Lval * Rval;
             break;
         }
         case OP_DIV :
         {
             if (Rval != 0)
             {
-                node->value = Lval / Rval;
+                VAL = Lval / Rval;
             } 
             else
             {
@@ -344,7 +345,7 @@ void CalculateBinOP(DerTree* tree, DerNode* node)
         }
         case OP_POW :
         {
-            node->value = (ElemT)pow(Lval, Rval);
+            VAL = pow(Lval, Rval);
             break;
         }
         default :
@@ -361,28 +362,28 @@ void CalculateUnOP(DerTree* tree, DerNode* node)
     assert(tree);
     assert(node);
 
-    switch (node->value)
+    switch (node->value.op)
     {
         case OP_SIN :
         {
-            node->value = (ElemT)sin(Rval);
+            VAL = (ElemT)sin(Rval);
             break;
         }
         case OP_COS :
         {
-            node->value = (ElemT)cos(Rval);
+            VAL = (ElemT)cos(Rval);
             break;
         }
         case OP_TAN :
         {
-            node->value = (ElemT)tan(Rval);
+            VAL = (ElemT)tan(Rval);
             break;
         }
         case OP_CTG :
         {
             if (Rval != 0)
             {
-                node->value = (ElemT)(1 / tan(Rval));
+                VAL = (ElemT)(1 / tan(Rval));
             }
             break;
         }
@@ -390,7 +391,7 @@ void CalculateUnOP(DerTree* tree, DerNode* node)
         {
             if (Rval >= 0)
             {
-                node->value = (ElemT)sqrt(Rval);
+                VAL = (ElemT)sqrt(Rval);
             }
             else
             {
@@ -402,7 +403,7 @@ void CalculateUnOP(DerTree* tree, DerNode* node)
         {
             if (Rval >= 0)
             {
-                node->value = (ElemT)log(Rval);
+                VAL = (ElemT)log(Rval);
             }
             else
             {
@@ -432,7 +433,7 @@ void CalculateNeutralOP(DerTree* tree, DerNode* node, bool* sth_has_changed)
 
     if (node->type == TYPE_BIN_OP)
     {
-        switch (node->value)
+        switch (node->value.op)
         {
             case OP_ADD :
             {
@@ -579,10 +580,9 @@ void CalculateNeutralExp(DerTree* tree, DerNode* node)
     }
 }
 
-
-
 #undef Rval
 #undef Lval
+#undef VAL
 #undef Rtype
 #undef Ltype
 

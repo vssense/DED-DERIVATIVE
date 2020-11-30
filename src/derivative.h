@@ -47,8 +47,6 @@ enum UnaryOperators
 static const char* UNARY_OP[] = {"sin", "cos", "tan", "ctg", "sqrt", "ln", "exp"};
 static const size_t NUM_UNARY_OP = 7;
 
-static const size_t NO_MATCHES = 3232;
-
 enum Variables
 {
 	VAR_X = 'x',
@@ -79,9 +77,16 @@ enum BreakElems
 	DIV_BREAK = 0
 };
 
+union Value
+{
+	double number;
+	int op;
+	char var;
+};
+
 struct DerNode
 {
-	ElemT value = 0;
+	union Value value;
 
 	NodeType type = TYPE_CONST;
 
@@ -100,7 +105,7 @@ struct DerTree
 
 
 DerTree* GetTree                (const int argc, char* argv[]);
-DerNode* ConstructNode          (NodeType type, ElemT value, DerNode* left, DerNode* right);
+DerNode* ConstructNode          (NodeType type, Value value, DerNode* left, DerNode* right);
 void     TreeDump               (DerTree* tree);
 void     PrintExpression        (DerTree* tree);
 void     Destruct               (DerTree* tree);
