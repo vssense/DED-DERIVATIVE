@@ -518,8 +518,7 @@ void PrintExpression(DerTree* tree)
     fprintf(tech_file,"$\n\\end{document}\n");
 
     fclose(tech_file);
-    system("pdflatex tech\\tech.tex");
-    system("tech.pdf");
+    system("tech");
 }
 
 void PrintExpressionRecursively(DerTree* tree, DerNode* node, FILE* tech_file)
