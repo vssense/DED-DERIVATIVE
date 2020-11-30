@@ -42,7 +42,7 @@ int main(const int argc, char* argv[])
 
     PrintExpression(tree);
 
-    // TreeDump(tree);
+    TreeDump(tree);
 
     Destruct(tree);
     Delete(tree);
@@ -85,11 +85,11 @@ void SetParentsRecursively(DerTree* tree, DerNode* node)
     }
 }
 
-#define dR Derivative(tree, node->right)
-#define dL Derivative(tree, node->left)
-#define cR CopyTree  (tree, node->right)
-#define cL CopyTree  (tree, node->left)
-#define c  CopyTree  (tree, node)
+#define dR    Derivative(tree, node->right)
+#define dL    Derivative(tree, node->left)
+#define cR    CopyTree  (tree, node->right)
+#define cL    CopyTree  (tree, node->left)
+#define COPY  CopyTree  (tree, node)
 
 #define ADD(left, right) ConstructNode(TYPE_BIN_OP, { .op = OP_ADD  }, left, right)
 #define SUB(left, right) ConstructNode(TYPE_BIN_OP, { .op = OP_SUB  }, left, right)
@@ -182,7 +182,7 @@ DerNode* SwitchBinOP(DerTree* tree, DerNode* node)
             } 
             else if (IsVarInRight)
             {
-                return MUL(MUL(c, LN(cL)), dR);
+                return MUL(MUL(COPY, LN(cL)), dR);
             }
             else
             {
@@ -234,7 +234,7 @@ DerNode* SwitchUnOP(DerTree* tree, DerNode* node)
         }
         case OP_EXP :
         {
-            return MUL(c, dR);
+            return MUL(COPY, dR);
         }
         default :
         {
@@ -248,7 +248,7 @@ DerNode* SwitchUnOP(DerTree* tree, DerNode* node)
 #undef dL
 #undef cR
 #undef cL
-#undef c 
+#undef COPY
 #undef ADD
 #undef SUB
 #undef MUL
