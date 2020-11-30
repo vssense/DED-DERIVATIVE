@@ -42,7 +42,6 @@ void     PrintTexBinOP             (FILE* file, DerNode* node);
 
 
 
-
 DerTree* NewTree()
 {
     DerTree* tree = (DerTree*)calloc(1, sizeof(DerTree));
@@ -532,7 +531,7 @@ void PrintExpressionRecursively(DerTree* tree, DerNode* node, FILE* tech_file)
     if (node == tree->nil) return;
 
     if ((node->type == TYPE_BIN_OP && (node->value == OP_ADD ||
-         node->value == OP_SUB || node->value == OP_POW)) ||
+         node->value == OP_SUB || node->value == OP_POW))    ||
         (node->parent->type == TYPE_UN_OP && node->type != TYPE_VAR))
     {
         fprintf(tech_file, "{(");    
@@ -563,7 +562,7 @@ void PrintExpressionRecursively(DerTree* tree, DerNode* node, FILE* tech_file)
     PrintExpressionRecursively(tree, node->right, tech_file);
 
     if ((node->type == TYPE_BIN_OP && (node->value == OP_ADD ||
-         node->value == OP_SUB || node->value == OP_POW)) ||
+         node->value == OP_SUB || node->value == OP_POW))    ||
         (node->parent->type == TYPE_UN_OP && node->type != TYPE_VAR))
     {
         fprintf(tech_file, ")}");    
