@@ -1,18 +1,8 @@
 digraph G{
 node [shape="circle"]
-"006C0CE8"[style="filled", fillcolor="#F6F7C6", label="*"]"006C0CE8":sw->"006C0D08";
-"006C0D08"[style="filled", fillcolor="#F6F7C6", label="+"]"006C0D08":sw->"006C0D28";
-"006C0D28"[style="filled", fillcolor="#F6F7C6", label="*"]"006C0D28":sw->"006C0D48";
-"006C0D48"[style="filled", fillcolor="#9BC3F7", label="3"]"006C0D28":se->"006C0D68";
-"006C0D68"[style="filled", fillcolor="#F6F796", label="tan"]"006C0D68":se->"006C0D88";
-"006C0D88"[style="filled", fillcolor="#C6F7DD", label="x"]"006C0D08":se->"006C0DA8";
-"006C0DA8"[style="filled", fillcolor="#F6F796", label="cos"]"006C0DA8":se->"006C0DC8";
-"006C0DC8"[style="filled", fillcolor="#F6F796", label="sin"]"006C0DC8":se->"006C0DE8";
-"006C0DE8"[style="filled", fillcolor="#F6F796", label="exp"]"006C0DE8":se->"006C0E08";
-"006C0E08"[style="filled", fillcolor="#C6F7DD", label="x"]"006C0CE8":se->"006C0E28";
-"006C0E28"[style="filled", fillcolor="#F6F7C6", label="-"]"006C0E28":sw->"006C0E48";
-"006C0E48"[style="filled", fillcolor="#9BC3F7", label="10"]"006C0E28":se->"006C0E68";
-"006C0E68"[style="filled", fillcolor="#F6F7C6", label="^"]"006C0E68":sw->"006C04B0";
-"006C04B0"[style="filled", fillcolor="#9BC3F7", label="2"]"006C0E68":se->"006C6D10";
-"006C6D10"[style="filled", fillcolor="#F6F796", label="ln"]"006C6D10":se->"006C6E90";
-"006C6E90"[style="filled", fillcolor="#C6F7DD", label="x"]}
+"00692298"[shape="record", style="filled", fillcolor="#F6F7C6", label="/|p: 006921B8|00692298|{l: 00692278|r: 00692258}"]"00692298":sw->"00692278";
+"00692278"[shape="record", style="filled", fillcolor="#9BC3F7", label="1|p: 00692298|00692278|{l: 006921B8|r: 006921B8}"]"00692298":se->"00692258";
+"00692258"[shape="record", style="filled", fillcolor="#F6F7C6", label="^|p: 00692298|00692258|{l: 00692238|r: 006921F8}"]"00692258":sw->"00692238";
+"00692238"[shape="record", style="filled", fillcolor="#F6F796", label="cos|p: 00692258|00692238|{l: 006921B8|r: 00692218}"]"00692238":se->"00692218";
+"00692218"[shape="record", style="filled", fillcolor="#C6F7DD", label="x|p: 00692238|00692218|{l: 006921B8|r: 006921B8}"]"00692258":se->"006921F8";
+"006921F8"[shape="record", style="filled", fillcolor="#9BC3F7", label="2|p: 00692258|006921F8|{l: 006921B8|r: 006921B8}"]}

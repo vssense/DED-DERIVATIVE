@@ -28,10 +28,11 @@ enum BinaryOperators
 	OP_MUL = 2,
 	OP_DIV = 3,
 	OP_POW = 4,
+
+	NUM_BINARY_OP = 5
 };
 
 static const char* BINARY_OP[] = {"+", "-", "*", "/", "^"};
-static const size_t NUM_BINARY_OP = 5;
 
 enum UnaryOperators
 {
@@ -41,17 +42,12 @@ enum UnaryOperators
 	OP_CTG  = 3,
 	OP_SQRT = 4,
     OP_LN   = 5,
-    OP_EXP  = 6
+    OP_EXP  = 6,
+
+    NUM_UNARY_OP = 7
 };
 
 static const char* UNARY_OP[] = {"sin", "cos", "tan", "ctg", "sqrt", "ln", "exp"};
-static const size_t NUM_UNARY_OP = 7;
-
-enum Variables
-{
-	VAR_X = 'x',
-	VAR_Y = 'y'
-};
 
 static const char* VARIABLES = "xy";
 
@@ -105,6 +101,8 @@ struct DerTree
 
 
 DerTree* GetTree                (const int argc, char* argv[]);
+DerTree* CopyTree               (DerTree* tree);
+DerNode* CopySubTree            (DerTree* tree, DerNode* node);
 DerNode* ConstructNode          (NodeType type, Value value, DerNode* left, DerNode* right);
 void     TreeDump               (DerTree* tree);
 void     PrintExpression        (DerTree* tree);

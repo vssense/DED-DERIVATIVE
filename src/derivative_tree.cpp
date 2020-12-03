@@ -1,4 +1,5 @@
 #include "derivative.h"
+#include "expression_loader.h"
 
 
 const size_t MAX_INPUT_SIZE = 512;
@@ -15,6 +16,7 @@ const size_t NOTATION = 10;
 
 
 DerTree* NewTree                   ();
+DerTree* CopyTree                  (DerTree* tree);
 DerNode* NewNode                   (DerTree* tree);
 void     Destruct                  (DerTree* tree);
 void     DestructNodes             (DerTree* tree, DerNode* node);
@@ -24,13 +26,8 @@ void     KillYourselfAndChildren   (DerTree* tree, DerNode* node, ElemT new_valu
 void     KillFatherAndBrother      (DerTree* tree, DerNode* node);
 void     Delete                    (DerTree* tree);
 DerTree* GetTree                   (const int argc, char* argv[]);
-void     GetData                   (DerTree* tree, char* buffer);
-void     GetConstant               (DerNode* node, char* buffer, size_t* ofs);
-void     GetVariative              (DerNode* node, char* buffer, size_t* ofs);
-void     GetOperator               (DerNode* node, char* buffer, size_t* ofs);
-void     GetBinaryOperator         (DerNode* node, char* buffer, size_t* ofs);
-void     GetUnaryOperator          (DerNode* node, char* buffer, size_t* ofs);
-DerNode* ConstructNode             (NodeType type, ElemT value, DerNode* left, DerNode* right);
+void     SetNils                   (DerTree* tree, DerNode* node);
+DerNode* ConstructNode             (NodeType type,  ElemT value, DerNode* left, DerNode* right);
 void     TreeDump                  (DerTree* tree);
 void     PrintNodes                (DerTree* tree, DerNode* node, FILE* dump_file);
 void     PrintNodesHard            (DerTree* tree, DerNode* node, FILE* dump_file);
@@ -113,6 +110,18 @@ void DestructNode(DerTree* tree, DerNode* node)
 
     free(node);
 }
+
+DerTree* CopyTree(DerTree* tree)
+{
+    DerTree* new_tree = (DerTree*)calloc(1, sizeof(DerTree));
+    assert(new_tree);
+
+    new_tree->root = CopySubTree(tree, tree->root);
+    new_tree->nil  = tree->nil;
+
+    return new_tree;
+}
+
 
 void KillChildren(DerTree* tree, DerNode* node)
 {
@@ -197,9 +206,13 @@ DerTree* GetTree(const int argc, char* argv[])
     DerTree* tree = NewTree();
 
     char* buffer = (char*)calloc(MAX_INPUT_SIZE, sizeof(char));
+    assert(buffer);
 
     fgets(buffer, MAX_INPUT_SIZE, input);
-    GetData(tree, buffer);
+
+    tree->root = GetAnswer(buffer);
+
+    SetNils(tree, tree->root);
 
     free(buffer);
     fclose(input);
@@ -207,148 +220,38 @@ DerTree* GetTree(const int argc, char* argv[])
     return tree;
 }
 
-void GetData(DerTree* tree, char* buffer)
+void SetNils(DerTree* tree, DerNode* node)
 {
-    assert(tree);
-    assert(buffer);
+    if (node == tree->nil) return;
 
-    size_t ofs = 0;
+    if (node->parent == nullptr) node->parent = tree->nil;
+    if (node->right  == nullptr) node->right  = tree->nil;
+    if (node->left   == nullptr) node->left   = tree->nil;
 
-    if (buffer[ofs++] == '(')
-    {
-        tree->root = NewNode(tree);
-    }
-    else
-    {
-        assert(!"Syntax error : first symbol must be '('");
-    }
-
-    DerNode* node = tree->root;
-
-    while (buffer[ofs] != '\0' && buffer[ofs] != '\n')
-    {
-        while (buffer[ofs] == ' ') ofs++;
-
-        if (buffer[ofs] == '(')
-        {
-            node->left = NewNode(tree);
-            node->left->parent = node;
-            node = node->left;
-            ofs++;
-        }
-        else if (buffer[ofs] == ')')
-        {
-            while (buffer[ofs] == ')' || buffer[ofs] == ' ')
-            {
-                if (buffer[ofs] == ')')
-                {
-                    node = node->parent;
-                }
-                ofs++;
-            }   
-        }
-        else if (isdigit(buffer[ofs]))
-        {
-            GetConstant(node, buffer, &ofs);
-        }
-        else if (strspn(buffer + ofs, VARIABLES))
-        {
-            GetVariative(node, buffer, &ofs);
-        }
-        else 
-        {
-            GetOperator(node, buffer, &ofs);
-            if (node->type == TYPE_NIL)
-            {
-                printf("Syntax error : unknown operator\n ofs = %u", ofs);
-            }
-
-            node->right = NewNode(tree);
-            node->right->parent = node;
-            node = node->right;
-            while (buffer[ofs++] != '(');
-        }
-    }
-}
-
-void GetConstant(DerNode* node, char* buffer, size_t* ofs)
-{
-    assert(node);
-    assert(buffer);
-
-    size_t start = 0;
-    size_t end   = 0;
-    sscanf(buffer + *ofs, "%n%lf%n", &start, &node->value.number, &end);
-
-    *ofs += end - start;
-    node->type = TYPE_CONST;
-}
-
-void GetVariative(DerNode* node, char* buffer, size_t* ofs)
-{
-    assert(node);
-    assert(buffer);
-
-    node->value.var = buffer[*ofs];
-    node->type      = TYPE_VAR;
-    (*ofs)++;
-}
-
-void GetOperator(DerNode* node, char* buffer, size_t* ofs)
-{
-    assert(node);
-    assert(buffer);
-
-    GetBinaryOperator(node, buffer, ofs);
-    if (node->type == TYPE_NIL)
-    {
-        GetUnaryOperator(node, buffer, ofs);
-    }
-}
-
-void GetBinaryOperator(DerNode* node, char* buffer, size_t* ofs)
-{
-    assert(node);
-    assert(buffer);
-
-    for (size_t i = 0; i < NUM_BINARY_OP; ++i)
-    {
-        if (strncmp(buffer + *ofs, BINARY_OP[i], strlen(BINARY_OP[i])) == 0)
-        {
-            node->value.op = i;
-            node->type     = TYPE_BIN_OP;
-            (*ofs)++;
-            break;
-        }
-    }
-}
-
-void GetUnaryOperator(DerNode* node, char* buffer, size_t* ofs)
-{
-    assert(node);
-    assert(buffer);
-
-    for (size_t i = 0; i < NUM_UNARY_OP; ++i)
-    {
-        if (strncmp(buffer + *ofs, UNARY_OP[i], strlen(UNARY_OP[i])) == 0)
-        {
-            node->value.op = i;
-            node->type     = TYPE_UN_OP;
-            (*ofs) += strlen(UNARY_OP[i]);
-            break;
-        }
-    }
+    SetNils(tree, node->right);
+    SetNils(tree, node->left);
 }
 
 DerNode* ConstructNode(NodeType type, Value value, DerNode* left, DerNode* right)
 {
     DerNode* node = (DerNode*)calloc(1, sizeof(DerNode));
+    assert(node);
 
     node->type  = type;
     node->value = value;
 
     node->left  = left;
     node->right = right;
+
+    // if (left != nullptr)
+    // {
+    //     left->parent = node;
+    // }
+
+    // if (right != nullptr)
+    // {
+    //     right->parent = node;
+    // }
 
     return node;
 }
@@ -362,7 +265,7 @@ void TreeDump(DerTree* tree)
     fprintf(dump_file, "digraph G{\n");
     fprintf(dump_file, "node [shape=\"circle\"]\n");
 
-    PrintNodes(tree, tree->root, dump_file);
+    PrintNodesHard(tree, tree->root, dump_file);
 
     fprintf(dump_file, "}");
 
@@ -409,13 +312,13 @@ void PrintNodes(DerTree* tree, DerNode* node, FILE* dump_file)
                 node, UNARY_OP[node->value.op]);
     }
 
-    if (node->left != tree->nil)
+    if (node->left != tree->nil && node->left)
     {
         fprintf(dump_file, "\"%p\":sw->\"%p\";\n", node, node->left);
         PrintNodes(tree, node->left, dump_file);
     }
     
-    if (node->right != tree->nil)
+    if (node->right != tree->nil && node->right)
     {
         fprintf(dump_file, "\"%p\":se->\"%p\";\n", node, node->right);
         PrintNodes(tree, node->right, dump_file);
@@ -453,13 +356,13 @@ void PrintNodesHard(DerTree* tree, DerNode* node, FILE* dump_file)
                 node, UNARY_OP[node->value.op], node->parent, node, node->left, node->right);
     }
 
-    if (node->left != tree->nil)
+    if (node->left != tree->nil && node->left)
     {
         fprintf(dump_file, "\"%p\":sw->\"%p\";\n", node, node->left);
         PrintNodesHard(tree, node->left, dump_file);
     }
     
-    if (node->right != tree->nil)
+    if (node->right != tree->nil && node->right)
     {
         fprintf(dump_file, "\"%p\":se->\"%p\";\n", node, node->right);
         PrintNodesHard(tree, node->right, dump_file);
@@ -510,7 +413,7 @@ void PrintExpression(DerTree* tree)
     FILE* tech_file = fopen(TECH_FILE, "w");
     assert(tech_file);
 
-    fprintf(tech_file, "\\documentclass[12pt]{article}\n"
+    fprintf(tech_file, "\\documentclass[32pt]{article}\n"
                        "\\begin{document}             \n$");
 
     PrintExpressionRecursively(tree, tree->root, tech_file);
@@ -521,19 +424,54 @@ void PrintExpression(DerTree* tree)
     system("tech");
 }
 
+bool IsMul(DerNode* node)
+{
+    return node->type == TYPE_BIN_OP && node->value.op == OP_MUL;
+}
+
+bool IsSum(DerNode* node)
+{
+    return node->type == TYPE_BIN_OP && 
+    (node->value.op == OP_ADD || node->value.op == OP_SUB);
+}
+
+bool IsDiv(DerNode* node)
+{
+    return node->type == TYPE_BIN_OP && node->value.op == OP_DIV;
+}
+
+bool IsPow(DerNode* node)
+{
+    return node->type == TYPE_BIN_OP && node->value.op == OP_POW;
+}
+
+bool IsList(DerTree* tree, DerNode* node)
+{
+    return node->right == tree->nil && node->left == tree->nil;
+}
+
+bool IsUnOP(DerNode* node)
+{
+    return node->type == TYPE_UN_OP;
+}
+
+bool NotSkipBracket(DerTree* tree, DerNode* node)
+{
+    return (!IsList(tree, node) && (IsMul(node->parent) && IsSum(node))) ||
+           (IsPow(node->parent) && node->parent->left == node && !IsList(tree, node)) ;
+}
+
 void PrintExpressionRecursively(DerTree* tree, DerNode* node, FILE* tech_file)
 {
     if (node == tree->nil) return;
 
-    if ((node->type == TYPE_BIN_OP && (node->value.op == OP_ADD  ||
-         node->value.op == OP_SUB  ||  node->value.op == OP_POW))||
-        (node->parent->type == TYPE_UN_OP && node->type != TYPE_VAR))
+    if (!NotSkipBracket(tree, node))
     {
-        fprintf(tech_file, "{(");    
+        fprintf(tech_file, "{");    
     }
     else
     {
-        fprintf(tech_file, "{");
+        fprintf(tech_file, "{(");
     }
 
     PrintExpressionRecursively(tree, node->left, tech_file);
@@ -556,15 +494,13 @@ void PrintExpressionRecursively(DerTree* tree, DerNode* node, FILE* tech_file)
     }
     PrintExpressionRecursively(tree, node->right, tech_file);
 
-    if ((node->type == TYPE_BIN_OP && (node->value.op == OP_ADD  ||
-         node->value.op == OP_SUB  ||  node->value.op == OP_POW))||
-        (node->parent->type == TYPE_UN_OP && node->type != TYPE_VAR))
+    if (!NotSkipBracket(tree, node))
     {
-        fprintf(tech_file, ")}");    
+        fprintf(tech_file, "}");    
     }
     else
     {
-        fprintf(tech_file, "}");
+        fprintf(tech_file, ")}");
     }
 }
 
@@ -587,7 +523,10 @@ void PrintTexBinOP(FILE* file, DerNode* node)
         }
         case OP_MUL :
         {
-            fprintf(file, " \\cdot ");
+            if (node->left->type != TYPE_CONST)
+            {
+                fprintf(file, " \\cdot ");
+            }
             break;
         }
         case OP_DIV :

@@ -21,12 +21,12 @@ void CalculateNeutralExp(DerTree* tree, DerNode* node);
 //Derivative
 /////////////////////////////////
 void     TakeDerivative       (DerTree* tree);
-DerTree* Derevative           (DerTree* tree, DerNode* node);
-DerNode* CopyTree             (DerTree* tree, DerNode* node);
+DerNode* Derivative           (DerTree* tree, DerNode* node);
+DerNode* CopySubTree          (DerTree* tree, DerNode* node);
 DerNode* SwitchBinOP          (DerTree* tree, DerNode* node);
 DerNode* SwitchUnOP           (DerTree* tree, DerNode* node);
-DerNode* Derivative           (DerTree* tree, DerNode* node);
 void     TakeDerivative       (DerTree* tree);
+void     Tailor               (DerTree* tree, size_t order);
 void     SetParents           (DerTree* tree);
 void     SetParentsRecursively(DerTree* tree, DerNode* node);
 bool     IsThereVariable      (DerTree* tree, DerNode* node);
@@ -38,16 +38,31 @@ int main(const int argc, char* argv[])
 
     // TreeDump(tree);
 
-    TakeDerivative(tree);
+    Tailor(tree, 10);
 
-    PrintExpression(tree);
+    // TakeDerivative(tree);
+    // PrintExpression(tree);
 
-    TreeDump(tree);
+    // TreeDump(tree);
 
     Destruct(tree);
     Delete(tree);
 
     return 0;
+}
+
+DerNode* TakeDerivativeWithNewTree(DerTree* tree)
+{
+    assert(tree);
+
+    DerNode* tmp1 = tree->root;
+    DerNode* tmp2 = Derivative(tree, tree->root);
+    tree->root = tmp2;
+
+    SetParents(tree);
+
+    tree->root = tmp1;
+    return tmp2;
 }
 
 void TakeDerivative(DerTree* tree)
@@ -87,9 +102,9 @@ void SetParentsRecursively(DerTree* tree, DerNode* node)
 
 #define dR    Derivative(tree, node->right)
 #define dL    Derivative(tree, node->left)
-#define cR    CopyTree  (tree, node->right)
-#define cL    CopyTree  (tree, node->left)
-#define COPY  CopyTree  (tree, node)
+#define cR    CopySubTree(tree, node->right)
+#define cL    CopySubTree(tree, node->left)
+#define COPY  CopySubTree(tree, node)
 
 #define ADD(left, right) ConstructNode(TYPE_BIN_OP, { .op = OP_ADD  }, left, right)
 #define SUB(left, right) ConstructNode(TYPE_BIN_OP, { .op = OP_SUB  }, left, right)
@@ -99,6 +114,7 @@ void SetParentsRecursively(DerTree* tree, DerNode* node)
 #define EXP(right)       ConstructNode(TYPE_UN_OP,  { .op = OP_EXP  }, tree->nil, right)
 #define LN(right)        ConstructNode(TYPE_UN_OP,  { .op = OP_LN   }, tree->nil, right)
 #define CONST(NUM)       ConstructNode(TYPE_CONST,  { .number = NUM }, tree->nil, tree->nil)
+#define VAR(x)           ConstructNode(TYPE_VAR,    { .var = x      }, tree->nil, tree->nil)
 
 DerNode* Derivative(DerTree* tree, DerNode* node)
 {
@@ -134,7 +150,7 @@ DerNode* Derivative(DerTree* tree, DerNode* node)
     }
 }
 
-DerNode* CopyTree(DerTree* tree, DerNode* node)
+DerNode* CopySubTree(DerTree* tree, DerNode* node)
 {
     assert(tree);
     assert(node);
@@ -244,11 +260,56 @@ DerNode* SwitchUnOP(DerTree* tree, DerNode* node)
     }
 }
 
+void SetX(DerTree* tree, DerNode* node, double value)
+{
+    if (node == tree->nil)
+    {
+        return;
+    }
+
+    if (node->type == TYPE_VAR && node->value.var == 'x')
+    {
+        node->type = TYPE_CONST;
+        node->value.number = value;
+    }
+
+    SetX(tree, node->right, value);
+    SetX(tree, node->left,  value);
+}
+
+void Tailor(DerTree* tree, size_t order)
+{
+    size_t factorial = 1;
+
+    DerTree* tailor_tree = CopyTree(tree);
+    SetX(tailor_tree, tailor_tree->root, 0);
+    Simplify(tailor_tree);
+
+    for (size_t i = 1; i <= order; ++i)
+    {
+        if (i != 0)
+        {
+            factorial *= i;
+        }
+
+        TakeDerivative(tree);
+        DerTree* tmp = CopyTree(tree);
+        SetX(tmp, tmp->root, 0);
+        Simplify(tmp);
+
+        tailor_tree->root = ADD(tailor_tree->root, MUL(DIV(POW(VAR('x'), CONST(i)), CONST(factorial)), CONST(tmp->root->value.number)));
+        SetParents(tailor_tree);
+        Simplify(tailor_tree);
+    }
+
+    PrintExpression(tailor_tree);
+}
+
 #undef dR
 #undef dL
 #undef cR
 #undef cL
-#undef COPY
+#undef COPY 
 #undef ADD
 #undef SUB
 #undef MUL
@@ -298,15 +359,15 @@ void CalculateConsts(DerTree* tree, DerNode* node, bool* sth_has_changed)
         }
     }
 
-    // if (node->type == TYPE_UN_OP)
-    // {
-    //     if (Rtype == TYPE_CONST)
-    //     {
-    //         node->type = TYPE_CONST;
-    //         CalculateUnOP(tree, node);
-    //         *sth_has_changed = true;
-    //     }
-    // }
+    if (node->type == TYPE_UN_OP)
+    {
+        if (Rtype == TYPE_CONST)
+        {
+            node->type = TYPE_CONST;
+            CalculateUnOP(tree, node);
+            *sth_has_changed = true;
+        }
+    }
 }
 
 void CalculateBinOP(DerTree* tree, DerNode* node)

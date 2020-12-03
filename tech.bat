@@ -1,3 +1,4 @@
 cd tech
-pdflatex tech.tex
+pdflatex tech.tex > nul
 tech.pdf
+cd ../
