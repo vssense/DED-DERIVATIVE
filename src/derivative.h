@@ -1,7 +1,5 @@
 #pragma once 
 
-// #include "C:\Users\vssen\Desktop\TX\TXLib.h"
-
 #include <assert.h>
 #include <stdio.h>
 #include <stdlib.h>

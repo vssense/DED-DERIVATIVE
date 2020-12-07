@@ -455,7 +455,7 @@ bool IsUnOP(DerNode* node)
     return node->type == TYPE_UN_OP;
 }
 
-bool NotSkipBracket(DerTree* tree, DerNode* node)
+bool BracketNeeded(DerTree* tree, DerNode* node)
 {
     return (!IsList(tree, node) && (IsMul(node->parent) && IsSum(node))) ||
            (IsPow(node->parent) && node->parent->left == node && !IsList(tree, node)) ;
@@ -465,13 +465,13 @@ void PrintExpressionRecursively(DerTree* tree, DerNode* node, FILE* tech_file)
 {
     if (node == tree->nil) return;
 
-    if (!NotSkipBracket(tree, node))
+    if (BracketNeeded(tree, node))
     {
-        fprintf(tech_file, "{");    
+        fprintf(tech_file, "{(");    
     }
     else
     {
-        fprintf(tech_file, "{(");
+        fprintf(tech_file, "{");
     }
 
     PrintExpressionRecursively(tree, node->left, tech_file);
@@ -494,13 +494,13 @@ void PrintExpressionRecursively(DerTree* tree, DerNode* node, FILE* tech_file)
     }
     PrintExpressionRecursively(tree, node->right, tech_file);
 
-    if (!NotSkipBracket(tree, node))
+    if (BracketNeeded(tree, node))
     {
-        fprintf(tech_file, "}");    
+        fprintf(tech_file, "})");    
     }
     else
     {
-        fprintf(tech_file, ")}");
+        fprintf(tech_file, "}");
     }
 }
 

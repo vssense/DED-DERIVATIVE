@@ -26,7 +26,7 @@ DerNode* CopySubTree          (DerTree* tree, DerNode* node);
 DerNode* SwitchBinOP          (DerTree* tree, DerNode* node);
 DerNode* SwitchUnOP           (DerTree* tree, DerNode* node);
 void     TakeDerivative       (DerTree* tree);
-void     Tailor               (DerTree* tree, size_t order);
+void     Taylor               (DerTree* tree, size_t order);
 void     SetParents           (DerTree* tree);
 void     SetParentsRecursively(DerTree* tree, DerNode* node);
 bool     IsThereVariable      (DerTree* tree, DerNode* node);
@@ -36,9 +36,7 @@ int main(const int argc, char* argv[])
 {
     DerTree* tree = GetTree(argc, argv);
 
-    // TreeDump(tree);
-
-    Tailor(tree, 10);
+    Taylor(tree, 8);
 
     // TakeDerivative(tree);
     // PrintExpression(tree);
@@ -277,13 +275,13 @@ void SetX(DerTree* tree, DerNode* node, double value)
     SetX(tree, node->left,  value);
 }
 
-void Tailor(DerTree* tree, size_t order)
+void Taylor(DerTree* tree, size_t order)
 {
     size_t factorial = 1;
 
-    DerTree* tailor_tree = CopyTree(tree);
-    SetX(tailor_tree, tailor_tree->root, 0);
-    Simplify(tailor_tree);
+    DerTree* Taylor_tree = CopyTree(tree);
+    SetX(Taylor_tree, Taylor_tree->root, 0);
+    Simplify(Taylor_tree);
 
     for (size_t i = 1; i <= order; ++i)
     {
@@ -297,12 +295,12 @@ void Tailor(DerTree* tree, size_t order)
         SetX(tmp, tmp->root, 0);
         Simplify(tmp);
 
-        tailor_tree->root = ADD(tailor_tree->root, MUL(DIV(POW(VAR('x'), CONST(i)), CONST(factorial)), CONST(tmp->root->value.number)));
-        SetParents(tailor_tree);
-        Simplify(tailor_tree);
+        Taylor_tree->root = ADD(Taylor_tree->root, MUL(DIV(POW(VAR('x'), CONST(i)), CONST(factorial)), CONST(tmp->root->value.number)));
+        SetParents(Taylor_tree);
+        Simplify(Taylor_tree);
     }
 
-    PrintExpression(tailor_tree);
+    PrintExpression(Taylor_tree);
 }
 
 #undef dR
@@ -427,24 +425,24 @@ void CalculateUnOP(DerTree* tree, DerNode* node)
     {
         case OP_SIN :
         {
-            VAL = (ElemT)sin(Rval);
+            VAL = sin(Rval);
             break;
         }
         case OP_COS :
         {
-            VAL = (ElemT)cos(Rval);
+            VAL = cos(Rval);
             break;
         }
         case OP_TAN :
         {
-            VAL = (ElemT)tan(Rval);
+            VAL = tan(Rval);
             break;
         }
         case OP_CTG :
         {
             if (Rval != 0)
             {
-                VAL = (ElemT)(1 / tan(Rval));
+                VAL = 1 / tan(Rval);
             }
             break;
         }
@@ -452,7 +450,7 @@ void CalculateUnOP(DerTree* tree, DerNode* node)
         {
             if (Rval >= 0)
             {
-                VAL = (ElemT)sqrt(Rval);
+                VAL = sqrt(Rval);
             }
             else
             {
@@ -464,12 +462,17 @@ void CalculateUnOP(DerTree* tree, DerNode* node)
         {
             if (Rval >= 0)
             {
-                VAL = (ElemT)log(Rval);
+                VAL = log(Rval);
             }
             else
             {
                 node->type = NODE_ERROR;
             }
+            break;
+        }
+        case OP_EXP :
+        {
+            VAL = exp(Rval);
             break;
         }
         default :
