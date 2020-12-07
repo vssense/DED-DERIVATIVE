@@ -279,9 +279,9 @@ void Taylor(DerTree* tree, size_t order)
 {
     size_t factorial = 1;
 
-    DerTree* Taylor_tree = CopyTree(tree);
-    SetX(Taylor_tree, Taylor_tree->root, 0);
-    Simplify(Taylor_tree);
+    DerTree* taylor_tree = CopyTree(tree);
+    SetX(taylor_tree, taylor_tree->root, 0);
+    Simplify(taylor_tree);
 
     for (size_t i = 1; i <= order; ++i)
     {
@@ -295,12 +295,12 @@ void Taylor(DerTree* tree, size_t order)
         SetX(tmp, tmp->root, 0);
         Simplify(tmp);
 
-        Taylor_tree->root = ADD(Taylor_tree->root, MUL(DIV(POW(VAR('x'), CONST(i)), CONST(factorial)), CONST(tmp->root->value.number)));
-        SetParents(Taylor_tree);
-        Simplify(Taylor_tree);
+        taylor_tree->root = ADD(taylor_tree->root, MUL(DIV(POW(VAR('x'), CONST(i)), CONST(factorial)), CONST(tmp->root->value.number)));
+        SetParents(taylor_tree);
+        Simplify(taylor_tree);
     }
 
-    PrintExpression(Taylor_tree);
+    PrintExpression(taylor_tree);
 }
 
 #undef dR
