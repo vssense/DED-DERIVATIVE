@@ -37,7 +37,6 @@ int main(const int argc, char* argv[])
     DerTree* tree = GetTree(argc, argv);
 
     Taylor(tree, 8);
-
     // TakeDerivative(tree);
     // PrintExpression(tree);
 
@@ -55,7 +54,7 @@ DerNode* TakeDerivativeWithNewTree(DerTree* tree)
 
     DerNode* tmp1 = tree->root;
     DerNode* tmp2 = Derivative(tree, tree->root);
-    tree->root = tmp2;
+    tree->root    = tmp2;
 
     SetParents(tree);
 
@@ -153,7 +152,10 @@ DerNode* CopySubTree(DerTree* tree, DerNode* node)
     assert(tree);
     assert(node);
 
-    if (node == tree->nil) return tree->nil;
+    if (node == tree->nil)
+    {
+        return tree->nil;
+    }
 
     return ConstructNode(node->type, node->value, cL, cR);
 }
@@ -490,7 +492,10 @@ void CalculateNeutralOP(DerTree* tree, DerNode* node, bool* sth_has_changed)
     assert(tree);
     assert(node);
 
-    if (node == tree->nil) return;
+    if (node == tree->nil)
+    {
+        return;
+    }
 
     CalculateNeutralOP(tree, node->right, sth_has_changed);
     CalculateNeutralOP(tree, node->left,  sth_has_changed);
@@ -527,10 +532,12 @@ void CalculateNeutralOP(DerTree* tree, DerNode* node, bool* sth_has_changed)
             case OP_LN :
             {
                 CalculateNeutralLn(tree, node);
+                break;
             }
             case OP_EXP :
             {
                 CalculateNeutralExp(tree, node);
+                break;
             }
             default :
             {

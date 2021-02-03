@@ -5,7 +5,7 @@ void IgnoreSpaces(Buffer* buffer)
 {
     assert(buffer);
     
-    while (*buffer->str == ' ') 
+    while (*buffer->str == ' ')
     {
         buffer->str++;
     }
@@ -154,7 +154,7 @@ DerNode* GetNumberOrVar(Buffer* buffer)
     size_t start = 0;
     size_t end   = 0;
 
-    if (!sscanf(buffer->str, "%n%lf%n", &start, &value, &end))
+    if (!sscanf(buffer->str, "%lln%lf%lln", &start, &value, &end))
     {
         if (strspn(buffer->str, VARIABLES))
         {

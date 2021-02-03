@@ -1,4 +1,4 @@
-options = -Wall -Wextra -w
+options = -Wall -Wextra
 
 src = src
 bin = bin
@@ -18,4 +18,4 @@ $(bin)\derivative_tree.o : $(src)\derivative_tree.cpp $(src)\derivative.h
 	g++ -c $(src)\derivative_tree.cpp -o $(bin)\derivative_tree.o $(options)
 
 $(bin)\expr_loader.o : $(src)\expression_loader.cpp $(src)\expression_loader.h
-	g++ -c $(src)\expression_loader.cpp -o $(bin)\expr_loader.o 
+	g++ -c $(src)\expression_loader.cpp -o $(bin)\expr_loader.o $(options)

@@ -396,13 +396,13 @@ size_t GetJPGNumber()
     
     if (numjpgs != nullptr)
     {
-        fscanf(numjpgs, "%u", &num);
+        fscanf(numjpgs, "%llu", &num);
     }
 
     fclose(numjpgs);
 
     numjpgs = fopen(DUMP_FILE_NAME, "w");
-    fprintf(numjpgs, "%u", num + 1);
+    fprintf(numjpgs, "%llu", num + 1);
     fclose(numjpgs);
     
     return num;
